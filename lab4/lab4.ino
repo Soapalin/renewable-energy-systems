@@ -1,16 +1,13 @@
 #include <PWM.h>
 int pin_PWM = 10;
-const int pin_ADC1 = A0;
-const int pin_ADC2 = A1;
-float InputVoltage = 0;
-float OutputVoltage =0;
+const int pin_ADC1 = A0;  // Input Voltage pin
+const int pin_ADC2 = A1; // Output voltage pin
+float InputVoltage = 0; // Initialise inputVoltage variable
+float OutputVoltage =0; // Imitialise outputVoltage variable
 float PVstart = 0; // PV power old value 
 float PVPnew = 0; // PV power new value 
-int duty = 40;
+int duty = 40; // init duty cycle at 50%
 int32_t frequency = 100000;
-float MPPT;
-int count;
-// 0.0272
 
 void setup() {
   // put your setup code here, to run once:
@@ -22,32 +19,33 @@ void setup() {
     pinMode(pin_PWM, OUTPUT);
     Serial.begin(9600);
   }
-
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  InputVoltage = analogRead(pin_ADC1)*0.0049;
-  OutputVoltage = analogRead(pin_ADC2)*0.0049;
-  delay(200);
-  PVPnew = InputVoltage * OutputVoltage;
+  InputVoltage = analogRead(pin_ADC1)*0.0049; // Read input voltage 
+  //Serial.print("Input Voltage ");
+  //Serial.println(InputVoltage);
+  OutputVoltage = analogRead(pin_ADC2)*0.0049; // Read output voltage 
+  //Serial.print("Output Voltage ");
+  //Serial.println(OutputVoltage);
+  delay(200); // delay before operating the values
+  PVPnew = InputVoltage * OutputVoltage; // equation from prelab
   
-
-  Serial.println(PVPnew);
+  //Serial.print("PVPnew ");
+  //Serial.println(PVPnew);
   
-  if(PVPnew > PVstart)
+  if(PVPnew >= PVstart) // if the new power is highger than the old power
   {
-    duty++;
+    duty = duty + 1;  // Increase the duty cycle 
+    delay(500); // delay or the circuit to have time to behave
   }
-  else if (PVPnew < PVstart)
+  else if ((PVPnew < PVstart)) // if new power smaller than old power
   {   
-    duty--;
+    duty = duty - 1; // decrease the duty cycle
+    delay(500);
   }
-  delay(500);
 
-  
-  
-  if(duty > 72)
+  if(duty > 72) // Limit the duty cycle from 10% to 90%
   {
     duty = 72;
   }
@@ -55,8 +53,10 @@ void loop() {
   {
     duty = 8;
   }
-  analogWrite(pin_PWM, duty);
-  PVstart = PVPnew;
-  delay(500);
+  Serial.print("duty cycle: ");
+  Serial.println(duty);
+  analogWrite(pin_PWM, duty); // Write new duty cycle
+  PVstart = PVPnew; // Record and replace old values with the new one
+  delay(500); // delay to give time for the circuit to register the change
 
 }
